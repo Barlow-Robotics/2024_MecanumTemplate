@@ -97,12 +97,12 @@ public class DriveRobot extends Command {
         NetworkTableInstance.getDefault().getEntry("driverController/yawSpeed")
                 .setDouble(yawSpeed);
 
-  
+        driveSub.drive(fwdSpeed, latSpeed, rawSpeed, false);
     }
 
     @Override
     public void end(boolean interrupted) {
-        driveSub.drive(0.0, 0.0, 0.0, true);
+        driveSub.drive(0.0, 0.0, 0.0, false);
     }
 
     @Override
