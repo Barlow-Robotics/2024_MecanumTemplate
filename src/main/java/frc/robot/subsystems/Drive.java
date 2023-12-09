@@ -38,18 +38,13 @@ public class Drive extends SubsystemBase {
 
     ArrayList<WPI_TalonFX> motors = new ArrayList<WPI_TalonFX>();
 
-//    MecanumDriveOdometry odometry;
-
     public final MecanumDrive drive;
 
-    // The gyro sensor
     private final ADXRS450_Gyro gyro = new ADXRS450_Gyro();
     private final ADXRS450_GyroSim gyroSim = new ADXRS450_GyroSim(gyro) ;
 
-    // Odometry class for tracking robot pose
-    MecanumDriveOdometry m_odometry = new MecanumDriveOdometry(DriveConstants.kDriveKinematics, gyro.getRotation2d());
+    MecanumDriveOdometry odometry = new MecanumDriveOdometry(DriveConstants.kDriveKinematics, gyro.getRotation2d());
 
-    /** Creates a new DriveSubsystem. */
     public DriveSubsystem() {
 
         frontLeft = new WPI_TalonFX(DriveConstants.IDFrontLeftMotor);
@@ -73,13 +68,11 @@ public class Drive extends SubsystemBase {
         setMotorConfig(frontRight);
 
         drive = new MecanumDrive(frontLeft, backLeft, frontRight, backRight);
-
     }
 
     @Override
     public void periodic() {
-        // Update the odometry in the periodic block
-        m_odometry.update(
+        odometry.update(
                 gyro.getRotation2d(),
                 new MecanumDriveWheelSpeeds(
                     getSpeed(frontLeft),
@@ -97,22 +90,12 @@ public class Drive extends SubsystemBase {
         return (s);
     }
 
-    /**
-     * Returns the currently-estimated pose of the robot.
-     *
-     * @return The pose.
-     */
     public Pose2d getPose() {
-        return m_odometry.getPoseMeters();
+        return odometry.getPoseMeters();
     }
 
-    /**
-     * Resets the odometry to the specified pose.
-     *
-     * @param pose The pose to which to set the odometry.
-     */
     public void resetOdometry(Pose2d pose) {
-        m_odometry.resetPosition(pose, gyro.getRotation2d());
+        odometry.resetPosition(pose, gyro.getRotation2d());
     }
 
     /**
@@ -135,7 +118,6 @@ public class Drive extends SubsystemBase {
         }
     }
 
-    /** Sets the front left drive MotorController to a voltage. */
     public void setDriveMotorControllersVolts(MecanumDriveMotorVoltages volts) {
         frontLeft.setVoltage(volts.frontLeftVoltage);
         backLeft.setVoltage(volts.rearLeftVoltage);
@@ -147,7 +129,6 @@ public class Drive extends SubsystemBase {
         NetworkTableInstance.getDefault().getEntry("drive/rear_right_volts").setDouble(volts.rearRightVoltage);
     }
 
-    /** Resets the drive encoders to currently read a position of 0. */
     public void resetEncoders() {
         frontLeft.setSelectedSensorPosition(0);
         backLeft.setSelectedSensorPosition(0);
@@ -170,26 +151,14 @@ public class Drive extends SubsystemBase {
         NetworkTableInstance.getDefault().getEntry("drive/commanded_speed/backRight").setDouble(speeds.rearRightMetersPerSecond);
     }
 
-    /**
-     * Sets the max output of the drive. Useful for scaling the drive to drive more
-     * slowly.
-     * 
-     * @param maxOutput the maximum output to which the drive will be constrained
-     */
     public void setMaxOutput(double maxOutput) {
         drive.setMaxOutput(maxOutput);
     }
 
-    /** Zeroes the heading of the robot. */
     public void zeroHeading() {
         gyro.reset();
     }
 
-    /**
-     * Returns the heading of the robot.
-     *
-     * @return the robot's heading in degrees, from -180 to 180
-     */
     public double getGyroHeading() {
         return Math.IEEEremainder(gyro.getAngle(), 360) ;
     }
@@ -197,15 +166,6 @@ public class Drive extends SubsystemBase {
     public Rotation2d getHeading() {
         return Rotation2d.fromDegrees(getGyroHeading()) ;
     }
-
-    /**
-     * Returns the turn rate of the robot.
-     *
-     * @return The turn rate of the robot, in degrees per second
-     */
-    // public double getTurnRate() {
-    //     return -m_gyro.getRate();
-    // }
 
     private void setMotorConfig(WPI_TalonFX motor) { // changed to TalonFX for intake
         motor.configFactoryDefault();
@@ -245,9 +205,9 @@ public class Drive extends SubsystemBase {
         // NetworkTableInstance.getDefault().getEntry("drive/get_speed/backLeft").setDouble(getSpeed(m_backLeft));
         // NetworkTableInstance.getDefault().getEntry("drive/get_speed/backRight").setDouble(getSpeed(m_backRight));
 
-        NetworkTableInstance.getDefault().getEntry("drive/odometry/X").setDouble(m_odometry.getPoseMeters().getX());
-        NetworkTableInstance.getDefault().getEntry("drive/odometry/Y").setDouble(m_odometry.getPoseMeters().getY());
-        NetworkTableInstance.getDefault().getEntry("drive/odometry/theta").setDouble(m_odometry.getPoseMeters().getRotation().getDegrees());
+        NetworkTableInstance.getDefault().getEntry("drive/odometry/X").setDouble(odometry.getPoseMeters().getX());
+        NetworkTableInstance.getDefault().getEntry("drive/odometry/Y").setDouble(odometry.getPoseMeters().getY());
+        NetworkTableInstance.getDefault().getEntry("drive/odometry/theta").setDouble(odometry.getPoseMeters().getRotation().getDegrees());
     
         // NetworkTableInstance.getDefault().getEntry("drive/frontLeft_closed_loop_error").setDouble(m_frontLeft.getClosedLoopError());
         // NetworkTableInstance.getDefault().getEntry("drive/frontRight_closed_loop_error").setDouble(m_frontRight.getClosedLoopError());
@@ -283,9 +243,6 @@ public class Drive extends SubsystemBase {
         gyroSim.setRate(1.0);
         NetworkTableInstance.getDefault().getEntry("drive/gyro/getAngle").setDouble(gyro.getAngle());
 
-
         // do sim stuff
-
     }
-
 }
